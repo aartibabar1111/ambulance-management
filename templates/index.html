@@ -83,6 +83,60 @@ section { padding: 80px 20px; font-family: 'Times New Roman', serif; }
 #bookingPanel .updateBtn { background-color: #3e2723; color: white; }
 #bookingPanel .deleteBtn { background-color: red; color: white; }
 
+/* Responsive Styles */
+@media (max-width: 768px) {
+    #main h1 { font-size: 35px; }
+    #main p { font-size: 18px; }
+
+    .About {
+        flex-direction: column;
+        padding: 40px 10px;
+    }
+    .About .image,
+    .About .info {
+        width: 90%;
+        margin: 10px 0;
+    }
+
+    .Services .flex {
+        flex-direction: column;
+        align-items: center;
+    }
+    .Services .card {
+        width: 90%;
+    }
+
+    .Contact .content {
+        flex-direction: column;
+        align-items: center;
+    }
+    .Contact form {
+        width: 90%;
+    }
+
+    #bookingPanel {
+        width: 95%;
+        padding: 15px;
+    }
+
+    #bookingModal .modal-content,
+    #updateModal .modal-content,
+    #loginModal .modal-content,
+    #registerModal .modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+
+    nav {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 10px;
+    }
+    nav a {
+        margin: 5px 10px;
+        font-size: 16px;
+    }
+}
 </style>
 </head>
 <body>
