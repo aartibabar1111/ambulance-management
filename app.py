@@ -12,7 +12,6 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecret")
 
-
 # --------------------------------------------------
 # DATABASE CONNECTION (NEW CONNECTION EVERY TIME)
 # --------------------------------------------------
@@ -26,11 +25,11 @@ def get_db():
         autocommit=True
     )
 
-
 # --------------------------------------------------
-# CREATE TABLES (RUN ONCE AT START)
+# CREATE TABLES FUNCTION (RUN MANUALLY IF NEEDED)
 # --------------------------------------------------
 def create_tables():
+    """Run this manually once to create all tables in your MySQL database."""
     db = get_db()
     cursor = db.cursor()
 
@@ -65,9 +64,6 @@ def create_tables():
 
     cursor.close()
     db.close()
-
-
-
 
 
 # --------------------------------------------------
@@ -250,6 +246,19 @@ def delete_booking(id):
     cursor.close()
     db.close()
     return "", 204
+
+
+# --------------------------------------------------
+# OPTIONAL: DB CONNECTION TEST
+# --------------------------------------------------
+@app.route("/db-test")
+def db_test():
+    try:
+        db = get_db()
+        db.close()
+        return "MySQL connected ✅"
+    except Exception as e:
+        return f"MySQL connection error: {e}"
 
 
 # --------------------------------------------------
