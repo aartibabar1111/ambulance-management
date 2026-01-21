@@ -22,6 +22,7 @@ def get_db():
         password=os.getenv("MYSQLPASSWORD"),
         database=os.getenv("MYSQLDATABASE"),
         port=int(os.getenv("MYSQLPORT", 3306)),
+        ssl_disabled=False,
         autocommit=True
     )
 
