@@ -67,8 +67,7 @@ def create_tables():
     db.close()
 
 
-# Create tables only once
-create_tables()
+
 
 
 # --------------------------------------------------
