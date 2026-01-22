@@ -1,13 +1,12 @@
 from flask import Flask, render_template, request, redirect, session, jsonify
 import mysql.connector
 import os
-from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # --------------------------------------------------
 # Load environment variables
 # --------------------------------------------------
-load_dotenv()
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecret")
@@ -21,8 +20,8 @@ def get_db():
         user=os.getenv("MYSQLUSER"),
         password=os.getenv("MYSQLPASSWORD"),
         database=os.getenv("MYSQLDATABASE"),
-        port=int(os.getenv("MYSQLPORT", 3306)),
-        ssl_disabled=False,
+        port=int(os.getenv("MYSQLPORT")),
+        ssl_disabled=True,
         autocommit=True
     )
 
