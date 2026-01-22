@@ -1,18 +1,32 @@
 from flask import Flask, render_template, request, redirect, session, jsonify
 import mysql.connector
+from werkzeug.middleware.proxy_fix import ProxyFix
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # --------------------------------------------------
-# Load environment variables
+# FLASK APP SETUP
 # --------------------------------------------------
-
-
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecret")
 
+# Fix session cookies behind Render's proxy
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# SESSION COOKIE SETTINGS
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,   # Prevent JS access
+    SESSION_COOKIE_SAMESITE='Lax'   # Recommended for login forms
+)
+
+# Enable secure cookies only on production (Render uses HTTPS)
+if os.getenv("FLASK_ENV") == "production":
+    app.config["SESSION_COOKIE_SECURE"] = True
+else:
+    app.config["SESSION_COOKIE_SECURE"] = False
+
 # --------------------------------------------------
-# DATABASE CONNECTION (NEW CONNECTION EVERY TIME)
+# DATABASE CONNECTION
 # --------------------------------------------------
 def get_db():
     return mysql.connector.connect(
@@ -26,10 +40,9 @@ def get_db():
     )
 
 # --------------------------------------------------
-# CREATE TABLES FUNCTION (RUN MANUALLY IF NEEDED)
+# CREATE TABLES (run manually once if needed)
 # --------------------------------------------------
 def create_tables():
-    """Run this manually once to create all tables in your MySQL database."""
     db = get_db()
     cursor = db.cursor()
 
@@ -65,9 +78,8 @@ def create_tables():
     cursor.close()
     db.close()
 
-
 # --------------------------------------------------
-# HOME
+# HOME PAGE
 # --------------------------------------------------
 @app.route("/")
 def home():
@@ -84,9 +96,8 @@ def home():
 
     return render_template("index.html", user=user, bookings=bookings)
 
-
 # --------------------------------------------------
-# AUTHENTICATION
+# REGISTER
 # --------------------------------------------------
 @app.route("/register", methods=["POST"])
 def register():
@@ -111,7 +122,9 @@ def register():
     db.close()
     return redirect("/")
 
-
+# --------------------------------------------------
+# LOGIN
+# --------------------------------------------------
 @app.route("/login", methods=["POST"])
 def login():
     db = get_db()
@@ -125,17 +138,21 @@ def login():
 
     if user and check_password_hash(user["password"], request.form["password"]):
         session["user"] = user["username"]
+        print("✅ Logged in:", session["user"])  # Debug
+    else:
+        print("❌ Login failed")
 
     cursor.close()
     db.close()
     return redirect("/")
 
-
+# --------------------------------------------------
+# LOGOUT
+# --------------------------------------------------
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
-
 
 # --------------------------------------------------
 # CONTACT FORM
@@ -158,9 +175,8 @@ def contact():
     db.close()
     return redirect("/?success=1")
 
-
 # --------------------------------------------------
-# BOOKINGS
+# BOOKING
 # --------------------------------------------------
 @app.route("/book", methods=["POST"])
 def book():
@@ -186,7 +202,9 @@ def book():
     db.close()
     return redirect("/?success=1")
 
-
+# --------------------------------------------------
+# AJAX: GET BOOKINGS
+# --------------------------------------------------
 @app.route("/get_bookings")
 def get_bookings():
     if "user" not in session:
@@ -200,14 +218,15 @@ def get_bookings():
     db.close()
     return jsonify(data)
 
-
+# --------------------------------------------------
+# UPDATE BOOKING
+# --------------------------------------------------
 @app.route("/update_booking/<int:id>", methods=["POST"])
 def update_booking(id):
     if "user" not in session:
         return "", 403
 
     data = request.get_json()
-
     db = get_db()
     cursor = db.cursor()
 
@@ -231,7 +250,9 @@ def update_booking(id):
     db.close()
     return "", 204
 
-
+# --------------------------------------------------
+# DELETE BOOKING
+# --------------------------------------------------
 @app.route("/delete_booking/<int:id>", methods=["POST"])
 def delete_booking(id):
     if "user" not in session:
@@ -247,9 +268,8 @@ def delete_booking(id):
     db.close()
     return "", 204
 
-
 # --------------------------------------------------
-# OPTIONAL: DB CONNECTION TEST
+# DB CONNECTION TEST
 # --------------------------------------------------
 @app.route("/db-test")
 def db_test():
@@ -260,9 +280,15 @@ def db_test():
     except Exception as e:
         return f"MySQL connection error: {e}"
 
+# --------------------------------------------------
+# DEBUG SESSION (Check logged-in user)
+# --------------------------------------------------
+@app.route("/whoami")
+def whoami():
+    return session.get("user", "No user logged in")
 
 # --------------------------------------------------
-# RUN APP (LOCAL + RAILWAY)
+# RUN APP
 # --------------------------------------------------
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
