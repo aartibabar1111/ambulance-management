@@ -96,7 +96,7 @@ def register():
 
     try:
         cursor.execute(
-            "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
+            "INSERT INTO users1 (username, email, password) VALUES (%s, %s, %s)",
             (
                 request.form["username"],
                 request.form["email"],
